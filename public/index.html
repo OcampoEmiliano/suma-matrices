@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suma de Matrices</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .input-section {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .matrix-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .matrix {
+            width: 48%;
+            margin-bottom: 20px;
+        }
+        .matrix-title {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .matrix-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+        .matrix-element {
+            width: 50px;
+            margin: 0 5px;
+            text-align: center;
+        }
+        .result-matrix {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #eafaf1;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .hidden {
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Suma de Matrices (Cliente-Servidor)</h1>
+        
+        <div class="input-section">
+            <h2>Paso 1: Definir el tamaño de las matrices</h2>
+            <div class="dimension-inputs">
+                <label for="rows">Número de filas:</label>
+                <input type="number" id="rows" min="1" max="10" value="2">
+                
+                <label for="columns">Número de columnas:</label>
+                <input type="number" id="columns" min="1" max="10" value="2">
+                
+                <button id="createMatrices">Crear matrices</button>
+                <div id="dimensionError" class="error hidden">Por favor, ingrese valores válidos para las dimensiones.</div>
+            </div>
+        </div>
+        
+        <div id="matricesSection" class="hidden">
+            <h2>Paso 2: Ingresar los valores de las matrices</h2>
+            <div class="matrix-inputs">
+                <div class="matrix" id="matrix1">
+                    <h3 class="matrix-title">Matriz 1</h3>
+                    <div id="matrix1Inputs"></div>
+                </div>
+                
+                <div class="matrix" id="matrix2">
+                    <h3 class="matrix-title">Matriz 2</h3>
+                    <div id="matrix2Inputs"></div>
+                </div>
+            </div>
+            
+            <button id="calculateSum">Calcular suma</button>
+            <div id="valueError" class="error hidden">Por favor, ingrese valores numéricos válidos en todas las celdas.</div>
+            <div id="loadingMessage" class="loading hidden">Procesando en el servidor...</div>
+        </div>
+        
+        <div id="resultSection" class="hidden">
+            <h2>Paso 3: Resultado de la suma</h2>
+            <div class="result-matrix">
+                <h3 class="matrix-title">Matriz Resultante</h3>
+                <div id="resultMatrix"></div>
+            </div>
+            
+            <button id="newCalculation" style="margin-top: 20px;">Nueva operación</button>
+        </div>
+    </div>
+
+    <script>
+        // Elementos DOM
+        const rowsInput = document.getElementById('rows');
+        const columnsInput = document.getElementById('columns');
+        const createMatricesBtn = document.getElementById('createMatrices');
+        const calculateSumBtn = document.getElementById('calculateSum');
+        const newCalculationBtn = document.getElementById('newCalculation');
+        const dimensionError = document.getElementById('dimensionError');
+        const valueError = document.getElementById('valueError');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const matricesSection = document.getElementById('matricesSection');
+        const resultSection = document.getElementById('resultSection');
+        const matrix1Inputs = document.getElementById('matrix1Inputs');
+        const matrix2Inputs = document.getElementById('matrix2Inputs');
+        const resultMatrix = document.getElementById('resultMatrix');
+
+        // Evento para crear las matrices
+        createMatricesBtn.addEventListener('click', function() {
+            const rows = parseInt(rowsInput.value);
+            const columns = parseInt(columnsInput.value);
+            
+            if (isNaN(rows) || isNaN(columns) || rows < 1 || columns < 1 || rows > 10 || columns > 10) {
+                dimensionError.textContent = "Por favor, ingrese dimensiones válidas (entre 1 y 10).";
+                dimensionError.classList.remove('hidden');
+                return;
+            }
+            
+            dimensionError.classList.add('hidden');
+            createMatrixInputs(rows, columns, matrix1Inputs, 'matrix1');
+            createMatrixInputs(rows, columns, matrix2Inputs, 'matrix2');
+            matricesSection.classList.remove('hidden');
+            resultSection.classList.add('hidden');
+        });
+
+        // Función para crear los inputs de las matrices
+        function createMatrixInputs(rows, columns, container, prefix) {
+            container.innerHTML = '';
+            
+            for (let i = 0; i < rows; i++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'matrix-row';
+                
+                for (let j = 0; j < columns; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'matrix-element';
+                    input.id = `${prefix}_${i}_${j}`;
+                    input.placeholder = `(${i+1},${j+1})`;
+                    rowDiv.appendChild(input);
+                }
+                
+                container.appendChild(rowDiv);
+            }
+        }
+
+        // Evento para calcular la suma
+        calculateSumBtn.addEventListener('click', function() {
+            const rows = parseInt(rowsInput.value);
+            const columns = parseInt(columnsInput.value);
+            
+            // Validar que todos los valores sean numéricos
+            if (!validateMatrixInputs(rows, columns)) {
+                valueError.textContent = "Por favor, ingrese valores numéricos válidos en todas las celdas.";
+                valueError.classList.remove('hidden');
+                return;
+            }
+            
+            valueError.classList.add('hidden');
+            
+            // Obtener matrices
+            const matrix1 = getMatrixValues(rows, columns, 'matrix1');
+            const matrix2 = getMatrixValues(rows, columns, 'matrix2');
+            
+            // Preparar datos para enviar al servidor
+            const data = {
+                matrix1: matrix1,
+                matrix2: matrix2,
+                rows: rows,
+                columns: columns
+            };
+            
+            // Mostrar mensaje de carga
+            loadingMessage.classList.remove('hidden');
+            
+            // Enviar datos al servidor
+            fetch('/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en el servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Ocultar mensaje de carga
+                loadingMessage.classList.add('hidden');
+                
+                // Mostrar resultado
+                displayResultMatrix(data.result, rows, columns);
+                resultSection.classList.remove('hidden');
+            })
+            .catch(error => {
+                // Ocultar mensaje de carga
+                loadingMessage.classList.add('hidden');
+                
+                // Mostrar error
+                valueError.textContent = "Error al procesar la solicitud: " + error.message;
+                valueError.classList.remove('hidden');
+            });
+        });
+
+        // Función para validar los inputs de las matrices
+        function validateMatrixInputs(rows, columns) {
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < columns; j++) {
+                    const value1 = document.getElementById(`matrix1_${i}_${j}`).value;
+                    const value2 = document.getElementById(`matrix2_${i}_${j}`).value;
+                    
+                    if (value1 === '' || isNaN(parseFloat(value1)) || 
+                        value2 === '' || isNaN(parseFloat(value2))) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Función para obtener los valores de las matrices
+        function getMatrixValues(rows, columns, prefix) {
+            const matrix = [];
+            
+            for (let i = 0; i < rows; i++) {
+                const row = [];
+                for (let j = 0; j < columns; j++) {
+                    const value = parseFloat(document.getElementById(`${prefix}_${i}_${j}`).value);
+                    row.push(value);
+                }
+                matrix.push(row);
+            }
+            
+            return matrix;
+        }
+
+        // Función para mostrar la matriz resultante
+        function displayResultMatrix(matrix, rows, columns) {
+            resultMatrix.innerHTML = '';
+            
+            for (let i = 0; i < rows; i++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'matrix-row';
+                
+                for (let j = 0; j < columns; j++) {
+                    const element = document.createElement('div');
+                    element.className = 'matrix-element';
+                    element.textContent = matrix[i][j];
+                    element.style.border = '1px solid #ddd';
+                    element.style.padding = '8px';
+                    element.style.backgroundColor = 'white';
+                    rowDiv.appendChild(element);
+                }
+                
+                resultMatrix.appendChild(rowDiv);
+            }
+        }
+
+        // Evento para reiniciar la calculadora
+        newCalculationBtn.addEventListener('click', function() {
+            matricesSection.classList.add('hidden');
+            resultSection.classList.add('hidden');
+            dimensionError.classList.add('hidden');
+            valueError.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>

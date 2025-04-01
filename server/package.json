@@ -1,0 +1,24 @@
+{
+  "name": "suma-matrices",
+  "version": "1.0.0",
+  "description": "Aplicación cliente-servidor para suma de matrices",
+  "type":"module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch app.js"
+  },
+  "keywords": [
+    "matrices",
+    "matematicas",
+    "express",
+    "node"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+  }
+}
