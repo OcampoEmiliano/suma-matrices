@@ -20,19 +20,23 @@ este repositorio contiene un servidor html con una pagina para realizar suma dos
 
 ### Clonar el Repositorio
 ```bash
-git clone https://github.com/OcampoEmiliano/matrices-multidimensionales-II.git
-cd matrices-multidimensionales-II
+git clone https://github.com/OcampoEmiliano/suma-matrices.git
+cd suma-matrices
 ```
 
 ## Ejecución
 
 ### Python
 ```bash
+cd server_python
 python app.py
 ```
+luego de iniciar el servidor ingresar en el navegador web a la direccion http://localhost:3000
 
 ### JavaScript
 ```bash
+cd server
+npm i
 node app.js
 ```
 
